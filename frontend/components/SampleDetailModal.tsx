@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { X, Info, Tag, Layers, Camera, Zap } from 'lucide-react';
+import { X, Tag, Layers, Camera, Zap } from 'lucide-react';
+import { SampleImage } from '../types';
+import { resolveMediaUrl } from '../services/api';
 
 interface SampleDetailModalProps {
-  sample: any;
+  sample: SampleImage;
   onClose: () => void;
 }
 
@@ -13,10 +15,10 @@ const SampleDetailModal: React.FC<SampleDetailModalProps> = ({ sample, onClose }
       <div className="bg-white w-full max-w-4xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col md:flex-row border border-purple-100">
         {/* Left: Image */}
         <div className="md:w-3/5 bg-gray-950 flex items-center justify-center relative group">
-          <img src={sample.url} alt="Detail" className="max-w-full max-h-[80vh] object-contain" />
+          <img src={resolveMediaUrl(sample.image)} alt="Detail" className="max-w-full max-h-[80vh] object-contain" />
           <div className="absolute bottom-4 left-4 flex space-x-2">
-            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white ${sample.isGenerated ? 'bg-indigo-600' : 'bg-purple-600'}`}>
-              {sample.isGenerated ? '生成样本' : '采集样本'}
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white bg-purple-600">
+              样本 #{sample.id}
             </span>
           </div>
         </div>
@@ -34,10 +36,10 @@ const SampleDetailModal: React.FC<SampleDetailModalProps> = ({ sample, onClose }
           </div>
 
           <div className="grid grid-cols-1 gap-6">
-            <InfoItem icon={<Tag className="w-4 h-4" />} label="样本类型" value={sample.type} />
-            <InfoItem icon={<Layers className="w-4 h-4" />} label="标签信息" value={sample.tag} />
-            <InfoItem icon={<Camera className="w-4 h-4" />} label="采集模式" value="自动触发" />
-            <InfoItem icon={<Zap className="w-4 h-4" />} label="相机增益" value="2.4x" />
+            <InfoItem icon={<Tag className="w-4 h-4" />} label="缺陷类型" value={sample.defect_type_name ?? '正常'} />
+            <InfoItem icon={<Layers className="w-4 h-4" />} label="设备" value={sample.device_name ?? '未指定'} />
+            <InfoItem icon={<Camera className="w-4 h-4" />} label="工艺点位" value={sample.process_point_name ?? '未指定'} />
+            <InfoItem icon={<Zap className="w-4 h-4" />} label="备注" value={sample.notes || '-'} />
           </div>
 
           <div className="pt-8">

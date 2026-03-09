@@ -9,6 +9,7 @@ import SystemManagement from './components/SystemManagement';
 import ReportsManagement from './components/ReportsManagement';
 import SampleLibrary from './components/SampleLibrary';
 import ModelManagement from './components/ModelManagement';
+import DetectionWorkspace from './components/DetectionWorkspace';
 import { MenuKey, SystemStats, ActiveTask, HistoryStats } from './types';
 import { Plus, Settings } from 'lucide-react';
 
@@ -66,6 +67,8 @@ const App: React.FC = () => {
         return <EngineManagement />;
       case 'devices':
         return <DeviceManagement />;
+      case 'detect':
+        return <DetectionWorkspace />;
       case 'reports':
         return <ReportsManagement />;
       case 'samples':

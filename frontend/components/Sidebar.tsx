@@ -24,6 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeMenu, onMenuChange }) => {
     { key: 'home', label: '主页', icon: Home },
     { key: 'engines', label: '设备', icon: Cpu },
     { key: 'devices', label: '检测流程', icon: Zap },
+    { key: 'detect', label: '检测', icon: Monitor },
     { key: 'samples', label: '样本库', icon: Box },
     { key: 'reports', label: '历史检测&检测报告', icon: FileText },
     { key: 'models', label: '模型管理', icon: Layers },

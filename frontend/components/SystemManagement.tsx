@@ -1,12 +1,52 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Edit3, Database, Activity, Workflow } from 'lucide-react';
+import { DefectType } from '../types';
+import { createDefectType, deleteDefectType, fetchDefectTypes } from '../services/api';
 
 const SystemManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'types' | 'defects' | 'processes'>('types');
   const [engineTypes] = useState(['柴油发动机', '汽油发动机', '混动总成', '电驱系统']);
-  const [defectTypes] = useState(['表面划痕', '铸造气孔', '加工裂纹', '锈迹', '异物']);
+  const [defectTypes, setDefectTypes] = useState<DefectType[]>([]);
+  const [newDefectName, setNewDefectName] = useState('');
+  const [defectError, setDefectError] = useState('');
   const [processTypes] = useState(['喷漆表面检测', '隔热层厚度检测', '缸体精密扫描', '焊接质量分析']);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const items = await fetchDefectTypes();
+        setDefectTypes(items);
+      } catch (err) {
+        setDefectError(err instanceof Error ? err.message : '缺陷类型加载失败');
+      }
+    };
+    load();
+  }, []);
+
+  const handleCreateDefect = async () => {
+    if (!newDefectName.trim()) {
+      setDefectError('请输入缺陷类型名称');
+      return;
+    }
+    try {
+      const created = await createDefectType(newDefectName.trim());
+      setDefectTypes((prev) => [created, ...prev]);
+      setNewDefectName('');
+      setDefectError('');
+    } catch (err) {
+      setDefectError(err instanceof Error ? err.message : '创建失败');
+    }
+  };
+
+  const handleDeleteDefect = async (id: number) => {
+    try {
+      await deleteDefectType(id);
+      setDefectTypes((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      setDefectError(err instanceof Error ? err.message : '删除失败');
+    }
+  };
 
   const renderList = (data: string[]) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -63,7 +103,51 @@ const SystemManagement: React.FC = () => {
         </div>
 
         {activeTab === 'types' && renderList(engineTypes)}
-        {activeTab === 'defects' && renderList(defectTypes)}
+        {activeTab === 'defects' && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                value={newDefectName}
+                onChange={(event) => setNewDefectName(event.target.value)}
+                placeholder="新增缺陷类型"
+                className="flex-1 px-4 py-2.5 bg-gray-50 border border-transparent rounded-xl focus:border-purple-300 outline-none text-sm"
+              />
+              <button
+                type="button"
+                onClick={handleCreateDefect}
+                className="px-6 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-bold shadow-md hover:bg-purple-700"
+              >
+                添加
+              </button>
+            </div>
+            {defectError && <p className="text-xs text-red-500">{defectError}</p>}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {defectTypes.map((item) => (
+                <div
+                  key={item.id}
+                  className="group p-4 bg-purple-50/50 border border-purple-100 rounded-2xl flex items-center justify-between hover:bg-white hover:shadow-md transition-all"
+                >
+                  <div>
+                    <span className="font-bold text-gray-700 text-sm">{item.name}</span>
+                    {!item.is_active && <p className="text-[10px] text-gray-400">未启用</p>}
+                  </div>
+                  <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="p-1.5 text-gray-400 hover:text-purple-600" title="编辑暂未开放">
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteDefect(item.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {activeTab === 'processes' && renderList(processTypes)}
       </div>
     </div>
