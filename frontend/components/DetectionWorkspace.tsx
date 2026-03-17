@@ -280,6 +280,10 @@ const DetectionWorkspace: React.FC = () => {
                   <input
                     type="file"
                     multiple
+                    // 支持整个文件夹上传
+                    webkitdirectory="true"
+                    directory="true"
+                    accept=".txt"
                     onChange={(event) => handleLabelsSelected(event.target.files)}
                     className="w-full mt-2 text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                   />
@@ -336,32 +340,66 @@ const DetectionWorkspace: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {pagedResults.map((result) => (
-                    <div key={`${result.index}-${result.filename}`} className="border border-purple-100 rounded-2xl overflow-hidden">
-                      <div className="aspect-video bg-gray-100">
-                        {result.preview_url ? (
-                          <img
-                            src={result.preview_url}
-                            alt={result.filename}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
-                            无预览
+                  {pagedResults.map((result) => {
+                    const isWrong = result.is_correct === false;
+                    return (
+                      <div
+                        key={`${result.index}-${result.filename}`}
+                        className={`border rounded-2xl overflow-hidden ${isWrong ? 'border-red-400 ring-2 ring-red-300' : 'border-purple-100'}`}
+                      >
+                        <div className="aspect-video bg-gray-100">
+                          {result.preview_url ? (
+                            <img
+                              src={result.preview_url}
+                              alt={result.filename}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                              无预览
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3 space-y-1">
+                          <p className="text-xs text-gray-500 truncate">{result.filename}</p>
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs font-bold ${result.status === '正常' ? 'text-green-600' : 'text-red-500'}`}>
+                              {result.status}
+                            </span>
+                            {result.defect_type === '箭头方向' && typeof result.output_value !== 'undefined' && result.output_value !== null ? (
+                              <span className="text-xs text-gray-600">
+                                箭头方向：{(() => {
+                                  const map = {
+                                    0: '向右',
+                                    1: '右上',
+                                    2: '向上',
+                                    3: '左上',
+                                    4: '向左',
+                                    5: '左下',
+                                    6: '向下',
+                                    7: '右下',
+                                    '-1': '未识别'
+                                  };
+                                  return map[String(result.output_value)] ?? result.output_value;
+                                })()}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-600">{result.defect_type}</span>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="p-3 space-y-1">
-                        <p className="text-xs text-gray-500 truncate">{result.filename}</p>
-                        <div className="flex items-center justify-between">
-                          <span className={`text-xs font-bold ${result.status === '正常' ? 'text-green-600' : 'text-red-500'}`}>
-                            {result.status}
-                          </span>
-                          <span className="text-xs text-gray-600">{result.defect_type}</span>
+                          {/* 新增：显示真实标签和对错标记 */}
+                          {typeof result.true_label !== 'undefined' && result.true_label !== null && (
+                            <div className="flex items-center text-xs mt-1">
+                              <span className="mr-2 text-gray-400">标签:</span>
+                              <span className="font-mono text-purple-700">{result.true_label}</span>
+                              {result.is_correct === true && <span className="ml-2 text-green-600">✔</span>}
+                              {result.is_correct === false && <span className="ml-2 text-red-500">✘</span>}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-gray-500">

@@ -78,6 +78,20 @@ class DetectionAPIView(APIView):
 		stats = build_stats(results)
 		metrics = compute_metrics(results, labels) if test_mode else None
 
+		# 增加每张图片的真实标签和是否预测正确
+		label_map = metrics['label_map'] if metrics and 'label_map' in metrics else {}
+		import os
+		def match_label(filename):
+			base = os.path.splitext(filename)[0]
+			for k, v in label_map.items():
+				if os.path.splitext(k)[0] == base:
+					return v
+			return None
+		for r in results:
+			true_label = match_label(r['filename'])
+			r['true_label'] = true_label
+			r['is_correct'] = (str(r['output_value']) == str(true_label)) if true_label is not None else None
+
 		payload = {
 			'device': device_id,
 			'process_point': process_point_id,
